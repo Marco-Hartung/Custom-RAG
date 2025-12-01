@@ -1,4 +1,4 @@
-rom dotenv import load_dotenv
+from dotenv import load_dotenv
 import os
 import vecs
 from openai import OpenAI
@@ -89,7 +89,7 @@ def embed_texts(texts: List[str]) -> List[List[float]]:
     # "response.data" ist eine Liste von Objekten, die jeweils ein Embedding enthalten:
     return [data.embedding for data in response.data]
 
-def ingest_document(raw_text: str, source: str) -> None:
+def ingest_document(raw_text: str, source: str) -> int:
     """
     Nimmt einen Rohtext, zerteilt ihn in Chunks, erstellt Embeddings
     und speichert alles in der Supabase-Collection.
@@ -99,7 +99,9 @@ def ingest_document(raw_text: str, source: str) -> None:
         source (str): Eine Kennung für die Quelle z.B. Dateiname ("handbuch_v1)
     """
     # 1. Text in Chunks aufteilen:
-    chunks = chunk_text(text=text)
+    chunks = chunk_text(text=raw_text)
+    if not chunks:
+        return 0
     print(f"Anzahl Chunks: {len(chunks)}")
     
     # 2. Embeddings für alle Chunks erzeugen:
@@ -135,6 +137,7 @@ def ingest_document(raw_text: str, source: str) -> None:
     collection.create_index()
     
     print(f"{len(items)} Chunks von '{source}' gespeichert.")
+    return len(items)
     
 
 def embed_query(query: str) -> List[float]:
@@ -168,7 +171,7 @@ def search_similar_chunks(query: str, k: int = 3):
         Liste von Treffern, wobei jeder Treffer ein Tupel ist:
         (id, score, metadata)
     """
-    query_vec = embed_query(query=frage)
+    query_vec = embed_query(query=query)
 
     result = collection.query(
         data=query_vec,
