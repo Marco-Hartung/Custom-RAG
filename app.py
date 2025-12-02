@@ -12,6 +12,9 @@ with st.sidebar:
     
     if "source_name" not in st.session_state:
         st.session_state["source_name"] = "demo_doc"
+    if "auto_source_name" not in st.session_state:
+        st.session_state["auto_source_name"] = None
+    
     
     # Wie sollen die Daten hinzugefügt werden?
     ingest_mode = st.radio(
@@ -48,15 +51,18 @@ with st.sidebar:
         )
     
         if uploaded_pdf is not None:
-            # Dateiname als Source verwenden:
+            # Dateiname als Vorschlag verwenden:
             filename = uploaded_pdf.name
             dot_index = filename.rfind(".")
             if dot_index != -1:
                 auto_source_name = filename[:dot_index]
             else:
                 auto_source_name = filename
-            st.session_state["source_name"] = auto_source_name
-            st.info(f"Quellen-Name wird automatisch auf **'{auto_source_name}'** gesetzt.")
+
+            if st.session_state["source_name"] == "demo_doc":
+                st.session_state["source_name"] = auto_source_name
+            
+            st.info(f"Quellen-Name wird automatisch auf **'{st.session_state['source_name']}'** gesetzt.")
             
         source_name = st.text_input(
             label="Quellen-Name:",
@@ -81,7 +87,7 @@ with st.sidebar:
                         source=source_name
                     )
                     st.success(
-                        f"{num_chunks} Chunks aus PDF unter Quelle '{auto_source_name}'"
+                        f"{num_chunks} Chunks aus PDF unter Quelle '{st.session_state['source_name']}'"
                         "gespeichert."
                     )
                         
